@@ -10,21 +10,27 @@ ST:urn:schemas-upnp-org:device:InternetGatewayDevice:1'''
     .replaceAll('\n', '\r\n')
     .codeUnits;
 
-Future<void> upnpPortForward() async {
-  final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+class UpnpPortForward {
+  bool loop = true;
+  bool mapped = false;
 
-  print('UDP Echo ready to receive');
-  print('${udp.address.address}:${udp.port}');
+  Future<void> map(int port) async {
+    final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
 
-  udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
+    udp.listen((RawSocketEvent e) {
+      final d = udp.receive();
+      if (d == null) return;
 
-  udp.listen((RawSocketEvent e) {
-    final d = udp.receive();
-    if (d == null) return;
+      String message = String.fromCharCodes(d.data);
+      print('Datagram from ${d.address.address}:${d.port}: ${message.trim()}');
 
-    String message = String.fromCharCodes(d.data);
-    print('Datagram from ${d.address.address}:${d.port}: ${message.trim()}');
+      //udp.send(message.codeUnits, d.address, d.port);
+    });
 
-    //udp.send(message.codeUnits, d.address, d.port);
-  });
+    while (loop) {
+      print(port);
+      udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
+      await Future.delayed(Duration(seconds: 20));
+    }
+  }
 }
