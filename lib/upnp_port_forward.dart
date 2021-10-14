@@ -37,7 +37,7 @@ class UpnpPortForward {
     while (loop) {
       print("$done $port");
       udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
-      await Future.delayed(Duration(seconds: 20));
+      await Future.delayed(Duration(seconds: 60));
     }
   }
 }
