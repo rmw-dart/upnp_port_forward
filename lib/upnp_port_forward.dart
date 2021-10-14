@@ -12,7 +12,7 @@ ST:urn:schemas-upnp-org:device:InternetGatewayDevice:1'''
 
 class UpnpPortForward {
   bool loop = true;
-  bool mapped = false;
+  bool done = false;
 
   Future<void> map(int port) async {
     final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
@@ -28,7 +28,7 @@ class UpnpPortForward {
     });
 
     while (loop) {
-      print(port);
+      print("$done $port");
       udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
       await Future.delayed(Duration(seconds: 20));
     }
