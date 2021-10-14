@@ -1,26 +1,30 @@
 library upnp_port_forward;
 
-Future<InternetAddress> intranetIpv4() async {
-  const len = 16;
-  final token = randomUint8List(len);
-  final dgSocket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
-  dgSocket.readEventsEnabled = true;
-  dgSocket.broadcastEnabled = true;
-  final ret = dgSocket.timeout(Duration(milliseconds: 500), onTimeout: (sink) {
-    sink.close();
-  }).expand<InternetAddress>((event) {
-    if (event == RawSocketEvent.read) {
-      final dg = dgSocket.receive();
-      if (dg != null &&
-          dg.data.length == len &&
-          ListEquality().equals(dg.data, token)) {
-        dgSocket.close();
-        return [dg.address];
-      }
-    }
-    return [];
-  }).first;
+import 'dart:io';
 
-  dgSocket.send(token, InternetAddress("255.255.255.255"), dgSocket.port);
-  return ret;
+final mSearch = '''M-SEARCH * HTTP/1.1
+HOST:239.255.255.250:1900
+MAN:'ssdp:discover'
+MX:3
+ST:urn:schemas-upnp-org:device:InternetGatewayDevice:1'''
+    .replaceAll('\n', '\r\n')
+    .codeUnits;
+
+Future<void> upnpPortForward() async {
+  final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+
+  print('UDP Echo ready to receive');
+  print('${udp.address.address}:${udp.port}');
+
+  udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
+
+  udp.listen((RawSocketEvent e) {
+    final d = udp.receive();
+    if (d == null) return;
+
+    String message = String.fromCharCodes(d.data);
+    print('Datagram from ${d.address.address}:${d.port}: ${message.trim()}');
+
+    //udp.send(message.codeUnits, d.address, d.port);
+  });
 }
