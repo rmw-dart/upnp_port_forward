@@ -13,7 +13,7 @@ ST:urn:schemas-upnp-org:device:InternetGatewayDevice:1'''
 class UpnpPortForward {
   bool loop = true;
   bool done = false;
-  late final Function callback;
+  late final Function(bool) callback;
 
   UpnpPortForward(this.callback);
 
