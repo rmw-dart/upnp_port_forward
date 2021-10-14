@@ -1,6 +1,5 @@
 library upnp_port_forward;
 
-
 Future<InternetAddress> intranetIpv4() async {
   const len = 16;
   final token = randomUint8List(len);

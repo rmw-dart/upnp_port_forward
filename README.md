@@ -2,7 +2,7 @@
 
 # upnp_port_forward
 
-get local intranet ip with tcp bind
+UPNP Port Forward
 
 ## use
 
