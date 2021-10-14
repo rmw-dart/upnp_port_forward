@@ -13,6 +13,7 @@ ST:urn:schemas-upnp-org:device:InternetGatewayDevice:1'''
 class UpnpPortForward {
   bool loop = true;
   bool done = false;
+  int fail = 0;
   late final Function(bool) callback;
 
   UpnpPortForward(this.callback);
@@ -26,6 +27,8 @@ class UpnpPortForward {
 
       String message = String.fromCharCodes(d.data);
       print('Datagram from ${d.address.address}:${d.port}: ${message.trim()}');
+
+      ++fail;
 
       callback(false);
       //udp.send(message.codeUnits, d.address, d.port);
