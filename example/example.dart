@@ -1,7 +1,7 @@
 import 'package:upnp_port_forward/upnp_port_forward.dart';
 
 void main() async {
-  final upnp = UpnpPortForward((mapped) {
+  final upnp = UpnpPortForwardDaemon((mapped) {
     print("$mapped map");
   });
 
