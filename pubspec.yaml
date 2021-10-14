@@ -15,4 +15,5 @@ dev_dependencies:
   test: ^1.16.0
 dependencies: 
   collection: ^1.15.0
+  intranet_ip: ^1.0.2
   random_uint8list: ^1.0.0 
