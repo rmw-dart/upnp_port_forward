@@ -1,0 +1,18 @@
+<!-- 本文件由 ./readme.make.md 自动生成，请不要直接修改此文件 -->
+
+# upnp_port_forward
+
+get local intranet ip with tcp bind
+
+## use
+
+```dart
+import 'package:upnp_port_forward/upnp_port_forward.dart';
+
+void main() async {
+  final ip = await intranetIpv4();
+  print(ip);
+  print(ip.rawAddress);
+}
+
+```

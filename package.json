@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@rmw/md-include": "^0.4.5"
+  }
+}

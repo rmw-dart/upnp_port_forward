@@ -1,0 +1,18 @@
+name: upnp_port_forward
+description: get local intranet ip with tcp bind 
+version: 1.0.2
+homepage: https://github.com/rmw-dart/upnp_port_forward
+
+environment:
+  sdk: '>=2.14.3 <3.0.0'
+
+
+# dependencies:
+#   path: ^1.8.0
+
+dev_dependencies:
+  lints: ^1.0.0
+  test: ^1.16.0
+dependencies: 
+  collection: ^1.15.0
+  random_uint8list: ^1.0.0 
