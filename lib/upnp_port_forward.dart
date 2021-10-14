@@ -13,6 +13,9 @@ ST:urn:schemas-upnp-org:device:InternetGatewayDevice:1'''
 class UpnpPortForward {
   bool loop = true;
   bool done = false;
+  late final Function callback;
+
+  UpnpPortForward(this.callback);
 
   Future<void> map(int port) async {
     final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
@@ -24,6 +27,7 @@ class UpnpPortForward {
       String message = String.fromCharCodes(d.data);
       print('Datagram from ${d.address.address}:${d.port}: ${message.trim()}');
 
+      callback(false);
       //udp.send(message.codeUnits, d.address, d.port);
     });
 
