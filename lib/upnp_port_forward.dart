@@ -2,6 +2,7 @@ library upnp_port_forward;
 
 // 参考资料: [UPNP自动端口映射的实现](https://blog.csdn.net/zfrong/article/details/3305738)
 
+import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:await_sleep/init.dart';
 import 'package:intranet_ip/intranet_ip.dart';
