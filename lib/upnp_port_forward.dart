@@ -123,7 +123,7 @@ class UpnpPortForwardDaemon {
 
   Future<void> bind(int port) async {
     while (true) {
-      await try_catch(() => map(port));
+      await tryCatch(() => map(port));
       await sleep(5);
     }
   }
