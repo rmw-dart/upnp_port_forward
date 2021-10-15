@@ -145,8 +145,8 @@ class UpnpPortForwardDaemon {
         }
       });
     }
-    if (ip != null) {
-      print(ip);
+    if (ip == null) {
+      return;
     }
     final soap = this.soap ??= await findSoap();
     print(soap.url);
