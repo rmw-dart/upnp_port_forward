@@ -23,13 +23,17 @@ class Http {
 
   Http({this.timeout = 60}) : http = HttpClient();
 
-  Future<HttpClientResponse> get(Uri url) async {
-    final req = await http.getUrl(url);
+  Future<HttpClientResponse> _req(Future<HttpClientRequest> request) async {
+    final req = await request;
     try {
       return await req.close().timeout(Duration(seconds: timeout));
     } on TimeoutException catch (_) {
       req.abort();
       rethrow;
     }
+  }
+
+  Future<HttpClientResponse> get(Uri url) {
+    return _req(http.getUrl(url));
   }
 }
