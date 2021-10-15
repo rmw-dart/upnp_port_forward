@@ -2,6 +2,7 @@ library upnp_port_forward;
 
 // 参考资料: [UPNP自动端口映射的实现](https://blog.csdn.net/zfrong/article/details/3305738)
 
+import 'package:xml/xml.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:await_sleep/init.dart';
@@ -18,7 +19,7 @@ ST:urn:schemas-upnp-org:device:InternetGatewayDevice:1'''
 Future<String> upnpUrl() async {
   final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
   String? url;
-  udp.listen((RawSocketEvent e) {
+  udp.listen((RawSocketEvent e) async {
     final d = udp.receive();
     if (d == null) return;
 
@@ -34,7 +35,7 @@ Future<String> upnpUrl() async {
           if (i.startsWith(location)) {
             final pos = i.indexOf(':', location.length);
             if (pos > 0) {
-              url = i.substring(pos + 1).trim();
+              url = await controlUrl(i.substring(pos + 1).trim());
             }
             break;
           }
@@ -65,6 +66,36 @@ Future<void> upnpMap(RawDatagramSocket udp, int port) async {
   print("$ip $port");
 }
 
+Future<String?> controlUrl(String url) async {
+  final uri = Uri.parse(url);
+  final response = await http.get(uri).timeout(
+    Duration(seconds: 6),
+    onTimeout: () {
+      return http.Response('Error', 500);
+    },
+  );
+  if (response.statusCode == 200) {
+    final doc = XmlDocument.parse(response.body);
+
+    for (var service in doc.findAllElements('service')) {
+      final serviceType = service.getElement('serviceType');
+      if (serviceType != null) {
+        if ([
+          "urn:schemas-upnp-org:service:WANIPConnection:1",
+          "urn:schemas-upnp-org:service:WANPPPConnection:1"
+        ].contains(serviceType.text)) {
+          final controlUrl = service.getElement('controlURL');
+          if (controlUrl != null) {
+            final _urlbase = doc.getElement('URLBase');
+            final urlbase = _urlbase != null ? _urlbase.text : uri.origin;
+            return urlbase + controlUrl.text;
+          }
+        }
+      }
+    }
+  }
+}
+
 class UpnpPortForwardDaemon {
   bool done = false;
   String? url;
@@ -76,14 +107,5 @@ class UpnpPortForwardDaemon {
   Future<void> map(int port) async {
     url ??= await upnpUrl();
     print(url);
-    final response = await http.get(Uri.parse(url!)).timeout(
-      Duration(seconds: 6),
-      onTimeout: () {
-        return http.Response('Error', 500);
-      },
-    );
-    if (response.statusCode == 200) {
-      print(response.body);
-    }
   }
 }
