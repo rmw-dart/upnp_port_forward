@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:await_sleep/init.dart';
 import 'package:http/http.dart' as http;
 import 'package:intranet_ip/intranet_ip.dart';
-import 'package:try_catch/async.dart';
+import 'package:try_catch/init.dart';
 import 'package:xml/xml.dart';
 
 final mSearch = '''M-SEARCH * HTTP/1.1
@@ -109,7 +109,7 @@ enum Protocol { tcp, udp }
 
 class UpnpPortForwardDaemon {
   Soap? soap;
-  InternetAddress? ip;
+  String? ip;
   List<Map<int, bool>> map = [{}, {}];
   late final Function(int, int, bool) callback;
 
@@ -131,7 +131,7 @@ class UpnpPortForwardDaemon {
   }
 
   Future<void> _map() async {
-    final _ip = await tryCatch(() => intranetIpv4());
+    final _ip = (await tryCatch(() => intranetIpv4()))?.address;
     if (_ip != ip) {
       ip = _ip;
       this.soap = null;
