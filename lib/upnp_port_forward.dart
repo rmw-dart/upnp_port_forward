@@ -2,6 +2,7 @@ library upnp_port_forward;
 
 // 参考资料: [UPNP自动端口映射的实现](https://blog.csdn.net/zfrong/article/details/3305738)
 
+import 'dart:async';
 import 'package:xml/xml.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
@@ -36,8 +37,8 @@ Future<Soap> findSoap() async {
             final pos = i.indexOf(':', location.length);
             if (pos > 0) {
               url = await controlUrl(i.substring(pos + 1).trim());
+              break;
             }
-            break;
           }
         }
       }
@@ -67,6 +68,7 @@ Future<void> upnpMap(RawDatagramSocket udp, int port) async {
 }
 
 Future<Soap?> controlUrl(String url) async {
+  throw 12345678;
   final uri = Uri.parse(url);
   final response = await http.get(uri).timeout(
     Duration(seconds: 6),
@@ -112,17 +114,19 @@ class UpnpPortForwardDaemon {
 
   Future<void> map(int port) async {
     while (true) {
-      try {
+      print(await runZonedGuarded(() async {
         _soap ??= await findSoap();
-      } catch (e, s) {
-        print("Caught: $e");
-        print("Stack: $s");
-        continue;
+      }, (e, s) {
+        print(e);
+        print(s);
+      }));
+      print('---- $_soap');
+      if (_soap != null) {
+        final soap = _soap!;
+        print(soap.url);
+        print(soap.serviceType);
       }
-      final soap = _soap!;
-      print(soap.url);
-      print(soap.serviceType);
-      await sleep(60);
+      await sleep(1);
     }
   }
 }
