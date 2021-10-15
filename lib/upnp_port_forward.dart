@@ -105,19 +105,45 @@ class Soap {
   Soap(this.url, this.serviceType);
 }
 
+enum Protocol { tcp, udp }
+
 class UpnpPortForwardDaemon {
   Soap? soap;
   InternetAddress? ip;
-  late final Function(int, bool) callback;
+  List<Map<int, bool>> map = [{}, {}];
+  late final Function(int, int, bool) callback;
 
   UpnpPortForwardDaemon(this.callback);
 
-  Future<void> map(int port) async {
+  void _add(Protocol protocol, int port) {
+    final m = map[protocol.index];
+    if (!m.containsKey(port)) {
+      m[port] = false;
+    }
+  }
+
+  void udp(int port) {
+    _add(Protocol.udp, port);
+  }
+
+  void tcp(int port) {
+    _add(Protocol.tcp, port);
+  }
+
+  Future<void> _map() async {
     final _ip = await tryCatch(() => intranetIpv4());
     if (_ip != ip) {
       ip = _ip;
       this.soap = null;
-      callback(port, false);
+      map.asMap().forEach((protocol, li) {
+        for (var i in li.entries) {
+          if (i.value) {
+            final port = i.key;
+            li[port] = false;
+            callback(protocol, port, false);
+          }
+        }
+      });
     }
     if (ip != null) {
       print(ip);
@@ -127,9 +153,9 @@ class UpnpPortForwardDaemon {
     print(soap.serviceType);
   }
 
-  Future<void> bind(int port) async {
+  Future<void> run() async {
     while (true) {
-      await tryCatch(() => map(port));
+      await tryCatch(() => _map());
       await sleep(60);
     }
   }
