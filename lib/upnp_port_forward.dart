@@ -47,7 +47,7 @@ Future<Soap> findSoap() async {
     //udp.send(message.codeUnits, d.address, d.port);
   });
 
-  do {
+  while (true) {
     print('try find udp router');
     udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
     await sleep(1);
@@ -55,7 +55,7 @@ Future<Soap> findSoap() async {
       break;
     }
     await sleep(59);
-  } while (url != null);
+  }
 
   udp.close();
   return url!;
@@ -68,7 +68,6 @@ Future<void> upnpMap(RawDatagramSocket udp, int port) async {
 }
 
 Future<Soap?> controlUrl(String url) async {
-  throw 12345678;
   final uri = Uri.parse(url);
   final response = await http.get(uri).timeout(
     Duration(seconds: 6),
@@ -113,20 +112,25 @@ class UpnpPortForwardDaemon {
   UpnpPortForwardDaemon(this.callback);
 
   Future<void> map(int port) async {
+    _soap ??= await findSoap();
+    if (_soap != null) {
+      final soap = _soap!;
+      print(soap.url);
+      print(soap.serviceType);
+    }
+  }
+
+  Future<void> bind(int port) async {
     while (true) {
-      print(await runZonedGuarded(() async {
-        _soap ??= await findSoap();
-      }, (e, s) {
-        print(e);
-        print(s);
-      }));
-      print('---- $_soap');
-      if (_soap != null) {
-        final soap = _soap!;
-        print(soap.url);
-        print(soap.serviceType);
+      if (_soap == null) {
+        runZonedGuarded(() async {
+          map(port);
+        }, (e, s) {
+          print(e);
+          print(s);
+        });
       }
-      await sleep(1);
+      await sleep(60);
     }
   }
 }

@@ -6,6 +6,6 @@ void main() async {
   });
 
   final port = 22222;
-  upnp.map(port);
+  upnp.bind(port);
   print("map port $port");
 }
