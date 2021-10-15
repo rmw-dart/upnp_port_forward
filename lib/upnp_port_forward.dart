@@ -5,10 +5,12 @@ library upnp_port_forward;
 import 'dart:async';
 import 'dart:io';
 import 'package:await_sleep/init.dart';
-import 'package:http/http.dart' as http;
 import 'package:intranet_ip/intranet_ip.dart';
 import 'package:try_catch/init.dart';
 import 'package:xml/xml.dart';
+import 'http.dart';
+
+final http = Http(6);
 
 final mSearch = '''M-SEARCH * HTTP/1.1
 HOST:239.255.255.250:1900
@@ -70,14 +72,9 @@ Future<void> upnpMap(RawDatagramSocket udp, int port) async {
 
 Future<Soap?> controlUrl(String url) async {
   final uri = Uri.parse(url);
-  final response = await http.get(uri).timeout(
-    Duration(seconds: 6),
-    onTimeout: () {
-      return http.Response('Error', 500);
-    },
-  );
+  final response = await http.get(uri);
   if (response.statusCode == 200) {
-    final doc = XmlDocument.parse(response.body);
+    final doc = XmlDocument.parse(await response.text());
 
     for (var service in doc.findAllElements('service')) {
       final serviceType = service.getElement('serviceType');
@@ -103,6 +100,14 @@ class Soap {
   final String serviceType;
   final String url;
   Soap(this.url, this.serviceType);
+  /*
+     FutureOr<String?> get(String action) {
+     headers : {
+     "Content-Type": "text/xml",
+     "SOAPAction": "$serviceType$action"
+     };
+     }
+     */
 }
 
 enum Protocol { tcp, udp }
@@ -152,6 +157,7 @@ class UpnpPortForwardDaemon {
     final soap = this.soap ??= await findSoap();
     print(soap.url);
     print(soap.serviceType);
+    //print(await soap.get('GetGenericPortMappingEntry'));
   }
 
   Future<void> run() async {

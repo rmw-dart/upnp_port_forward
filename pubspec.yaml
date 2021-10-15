@@ -16,7 +16,6 @@ dev_dependencies:
 dependencies: 
   await_sleep: ^1.0.1
   collection: ^1.15.0
-  http: ^0.13.4
   intranet_ip: ^1.0.2
   random_uint8list: ^1.0.0 
   try_catch: ^1.0.2
