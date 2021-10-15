@@ -108,7 +108,7 @@ class Soap {
 class UpnpPortForwardDaemon {
   Soap? soap;
   InternetAddress? ip;
-  late final Function(bool) callback;
+  late final Function(int, bool) callback;
 
   UpnpPortForwardDaemon(this.callback);
 
@@ -124,6 +124,7 @@ class UpnpPortForwardDaemon {
       if (_ip != ip) {
         ip = _ip;
         soap = null;
+        callback(port, false);
       }
       if (ip != null) {
         print(ip);

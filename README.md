@@ -10,8 +10,8 @@ UPNP Port Forward
 import 'package:upnp_port_forward/upnp_port_forward.dart';
 
 void main() async {
-  final upnp = UpnpPortForwardDaemon((mapped) {
-    print("$mapped map");
+  final upnp = UpnpPortForwardDaemon((port, state) {
+    print("port $port $state");
   });
 
   final port = 22222;
