@@ -15,6 +15,50 @@ ST:urn:schemas-upnp-org:device:InternetGatewayDevice:1'''
     .replaceAll('\n', '\r\n')
     .codeUnits;
 
+Future<String> upnpUrl() async {
+  final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+  String? url;
+  udp.listen((RawSocketEvent e) {
+    final d = udp.receive();
+    if (d == null) return;
+
+    final msg =
+        String.fromCharCodes(d.data).replaceAll('\r\n', '\n').split('\n');
+
+    if (msg.isNotEmpty) {
+      final pos = msg.indexWhere((i) => i.contains('200 OK'));
+      if (pos >= 0) {
+        for (var i in msg.sublist(pos)) {
+          i = i.trim();
+          const location = 'LOCATION';
+          if (i.startsWith(location)) {
+            final pos = i.indexOf(':', location.length);
+            if (pos > 0) {
+              url = i.substring(pos + 1).trim();
+            }
+            break;
+          }
+        }
+      }
+    }
+    //callback(false);
+    //udp.send(message.codeUnits, d.address, d.port);
+  });
+
+  do {
+    print('try find udp router');
+    udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
+    await sleep(1);
+    if (url != null) {
+      break;
+    }
+    await sleep(59);
+  } while (url != null);
+
+  udp.close();
+  return url!;
+}
+
 Future<void> upnpMap(RawDatagramSocket udp, int port) async {
   final ip = await intranetIpv4();
 
@@ -30,49 +74,16 @@ class UpnpPortForwardDaemon {
   UpnpPortForwardDaemon(this.callback);
 
   Future<void> map(int port) async {
-    await _url();
+    url ??= await upnpUrl();
     print(url);
-  }
-
-  Future<void> _url() async {
-    final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
-
-    udp.listen((RawSocketEvent e) {
-      final d = udp.receive();
-      if (d == null) return;
-
-      final msg =
-          String.fromCharCodes(d.data).replaceAll('\r\n', '\n').split('\n');
-
-      if (msg.isNotEmpty) {
-        final pos = msg.indexWhere((i) => i.contains('200 OK'));
-        if (pos >= 0) {
-          for (var i in msg.sublist(pos)) {
-            i = i.trim();
-            const location = 'LOCATION';
-            if (i.startsWith(location)) {
-              final pos = i.indexOf(':', location.length);
-              if (pos > 0) {
-                url = i.substring(pos + 1).trim();
-              }
-              break;
-            }
-          }
-        }
-      }
-      //callback(false);
-      //udp.send(message.codeUnits, d.address, d.port);
-    });
-
-    do {
-      udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
-      await sleep(1);
-      if (url != null) {
-        break;
-      }
-      await sleep(59);
-    } while (url != null);
-
-    udp.close();
+    final response = await http.get(Uri.parse(url!)).timeout(
+      Duration(seconds: 6),
+      onTimeout: () {
+        return http.Response('Error', 500);
+      },
+    );
+    if (response.statusCode == 200) {
+      print(response.body);
+    }
   }
 }
