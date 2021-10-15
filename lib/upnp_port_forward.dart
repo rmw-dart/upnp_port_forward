@@ -88,7 +88,7 @@ Future<Soap?> controlUrl(String url) async {
           if (controlUrl != null) {
             final _urlbase = doc.getElement('URLBase');
             final urlbase = _urlbase != null ? _urlbase.text : uri.origin;
-            return Soap(urlbase + controlUrl.text, type);
+            return Soap(Uri.parse(urlbase + controlUrl.text), type);
           }
         }
       }
@@ -98,16 +98,15 @@ Future<Soap?> controlUrl(String url) async {
 
 class Soap {
   final String serviceType;
-  final String url;
+  final Uri url;
   Soap(this.url, this.serviceType);
-  /*
-     FutureOr<String?> get(String action) {
-     headers : {
-     "Content-Type": "text/xml",
-     "SOAPAction": "$serviceType$action"
-     };
-     }
-     */
+  FutureOr<String?> get(String action) async {
+    final r = await http.post(url, headers: {
+      "Content-Type": "text/xml",
+      "SOAPAction": "$serviceType$action"
+    });
+    return await r.text();
+  }
 }
 
 enum Protocol { tcp, udp }
@@ -157,7 +156,7 @@ class UpnpPortForwardDaemon {
     final soap = this.soap ??= await findSoap();
     print(soap.url);
     print(soap.serviceType);
-    //print(await soap.get('GetGenericPortMappingEntry'));
+    print(await soap.get('GetGenericPortMappingEntry'));
   }
 
   Future<void> run() async {
