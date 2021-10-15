@@ -10,7 +10,7 @@ import 'package:try_catch/init.dart';
 import 'package:xml/xml.dart';
 import 'http.dart';
 
-final http = Http(6);
+final http = Http(timeout: 6);
 
 final mSearch = '''M-SEARCH * HTTP/1.1
 HOST:239.255.255.250:1900

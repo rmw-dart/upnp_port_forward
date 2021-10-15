@@ -19,7 +19,7 @@ extension HttpClientResponseText on HttpClientResponse {
 class Http {
   late final HttpClient http;
   int timeout;
-  Http(this.timeout) : http = HttpClient();
+  Http({this.timeout = 60}) : http = HttpClient();
 
   Future<HttpClientResponse> get(Uri url) async {
     final req = await http.getUrl(url);
