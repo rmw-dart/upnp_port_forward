@@ -3,7 +3,6 @@ library upnp_port_forward;
 // 参考资料: [UPNP自动端口映射的实现](https://blog.csdn.net/zfrong/article/details/3305738)
 
 import 'dart:async';
-import 'package:stack_trace/stack_trace.dart' show Chain;
 import 'package:xml/xml.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
@@ -105,6 +104,19 @@ class Soap {
   Soap(this.url, this.serviceType);
 }
 
+Future<void> asyncTry(Future Function() callback) {
+  var completer = Completer<void>();
+  runZonedGuarded(() async {
+    await callback();
+    completer.complete();
+  }, (e, s) {
+    stderr.write("❌ $e\n");
+    stderr.write(s);
+    completer.complete();
+  });
+  return completer.future;
+}
+
 class UpnpPortForwardDaemon {
   Soap? _soap;
 
@@ -123,12 +135,8 @@ class UpnpPortForwardDaemon {
 
   Future<void> bind(int port) async {
     while (true) {
-      runZoned(() {
-        Chain.capture(() {
-          map(port);
-        });
-      });
-      await sleep(60);
+      await asyncTry(() => map(port));
+      await sleep(59);
     }
   }
 }
