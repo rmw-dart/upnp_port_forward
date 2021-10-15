@@ -148,6 +148,7 @@ class UpnpPortForwardDaemon {
     if (ip == null) {
       return;
     }
+    print(map);
     final soap = this.soap ??= await findSoap();
     print(soap.url);
     print(soap.serviceType);

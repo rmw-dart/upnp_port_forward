@@ -4,7 +4,7 @@ version: 1.0.2
 homepage: https://github.com/rmw-dart/upnp_port_forward
 
 environment:
-  sdk: '>=2.14.3 <3.0.0'
+  sdk: '>=2.15.0 <3.0.0'
 
 
 # dependencies:
