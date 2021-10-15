@@ -53,7 +53,9 @@ class UpnpPortForwardDaemon {
     final soap = this.soap ??= await findSoap();
     print(soap.url);
     print(soap.serviceType);
-    print(await soap.get('GetGenericPortMappingEntry'));
+    var n = 0;
+    print(await soap.get('GetGenericPortMappingEntry',
+        "<NewPortMappingIndex>${n++}</NewPortMappingIndex>"));
   }
 
   Future<void> run() async {

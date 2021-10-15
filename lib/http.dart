@@ -19,7 +19,6 @@ extension HttpClientResponseText on HttpClientResponse {
 
 class Http {
   late final HttpClient http;
-
   int timeout;
 
   Http({this.timeout = 60}) : http = HttpClient();

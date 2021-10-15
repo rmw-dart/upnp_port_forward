@@ -3,6 +3,8 @@ import 'http.dart';
 import 'dart:io';
 import 'package:await_sleep/init.dart';
 import 'dart:async';
+import 'dart:typed_data';
+import 'dart:convert';
 
 final http = Http(timeout: 6);
 
@@ -88,11 +90,14 @@ class Soap {
   final String serviceType;
   final Uri url;
   Soap(this.url, this.serviceType);
-  FutureOr<String?> get(String action) async {
-    final r = await http.post(url, headers: {
-      "Content-Type": "text/xml",
-      "SOAPAction": "$serviceType$action"
-    });
+  FutureOr<String?> get(String action, String body) async {
+    final r = await http.post(url,
+        headers: {
+          "Content-Type": "text/xml",
+          "SOAPAction": "$serviceType$action"
+        },
+        body: Uint8List.fromList(utf8.encode("""<?xml version="1.0"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:$action xmlns:u="$serviceType">$body</u:#{action}></s:Body></s:Envelope>""")));
     return await r.text();
   }
 }
