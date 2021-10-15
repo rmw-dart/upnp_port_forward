@@ -113,6 +113,15 @@ class UpnpPortForwardDaemon {
   UpnpPortForwardDaemon(this.callback);
 
   Future<void> map(int port) async {
+    final _ip = await tryCatch(() => intranetIpv4());
+    if (_ip != ip) {
+      ip = _ip;
+      this.soap = null;
+      callback(port, false);
+    }
+    if (ip != null) {
+      print(ip);
+    }
     final soap = this.soap ??= await findSoap();
     print(soap.url);
     print(soap.serviceType);
@@ -120,16 +129,7 @@ class UpnpPortForwardDaemon {
 
   Future<void> bind(int port) async {
     while (true) {
-      final _ip = await tryCatch(() => intranetIpv4());
-      if (_ip != ip) {
-        ip = _ip;
-        soap = null;
-        callback(port, false);
-      }
-      if (ip != null) {
-        print(ip);
-        await tryCatch(() => map(port));
-      }
+      await tryCatch(() => map(port));
       await sleep(60);
     }
   }
