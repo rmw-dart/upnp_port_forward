@@ -104,7 +104,7 @@ class Soap {
   Soap(this.url, this.serviceType);
 }
 
-Future<void> asyncTry(Future Function() callback) {
+Future<void> try_(Future Function() callback) {
   var completer = Completer<void>();
   runZonedGuarded(() async {
     await callback();
@@ -135,8 +135,8 @@ class UpnpPortForwardDaemon {
 
   Future<void> bind(int port) async {
     while (true) {
-      await asyncTry(() => map(port));
-      await sleep(59);
+      await try_(() => map(port));
+      await sleep(5);
     }
   }
 }
