@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "@rmw/md-include": "^0.4.5"
+  },
+  "dependencies": {
+    "nodemon": "^2.0.13"
   }
 }

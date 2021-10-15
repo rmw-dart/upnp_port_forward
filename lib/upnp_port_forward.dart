@@ -1,5 +1,7 @@
 library upnp_port_forward;
 
+// 参考资料: [UPNP自动端口映射的实现](https://blog.csdn.net/zfrong/article/details/3305738)
+
 import 'dart:io';
 import 'package:await_sleep/init.dart';
 import 'package:intranet_ip/intranet_ip.dart';
@@ -16,36 +18,60 @@ Future<void> upnpMap(RawDatagramSocket udp, int port) async {
   final ip = await intranetIpv4();
 
   print("$ip $port");
-  udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
 }
 
 class UpnpPortForwardDaemon {
-  bool loop = true;
   bool done = false;
-  int fail = 0;
+  String? url;
+
   late final Function(bool) callback;
 
   UpnpPortForwardDaemon(this.callback);
 
   Future<void> map(int port) async {
+    await _url();
+    print(url);
+  }
+
+  Future<void> _url() async {
     final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
 
     udp.listen((RawSocketEvent e) {
       final d = udp.receive();
       if (d == null) return;
 
-      String message = String.fromCharCodes(d.data);
-      print('Datagram from ${d.address.address}:${d.port}: ${message.trim()}');
+      final msg =
+          String.fromCharCodes(d.data).replaceAll('\r\n', '\n').split('\n');
 
-      ++fail;
-
-      callback(false);
+      if (msg.isNotEmpty) {
+        final pos = msg.indexWhere((i) => i.contains('200 OK'));
+        if (pos >= 0) {
+          for (var i in msg.sublist(pos)) {
+            i = i.trim();
+            const location = 'LOCATION';
+            if (i.startsWith(location)) {
+              final pos = i.indexOf(':', location.length);
+              if (pos > 0) {
+                url = i.substring(pos + 1).trim();
+              }
+              break;
+            }
+          }
+        }
+      }
+      //callback(false);
       //udp.send(message.codeUnits, d.address, d.port);
     });
 
-    while (loop) {
-      await upnpMap(udp, port);
-      await sleep(60);
-    }
+    do {
+      udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
+      await sleep(1);
+      if (url != null) {
+        break;
+      }
+      await sleep(59);
+    } while (url != null);
+
+    udp.close();
   }
 }
