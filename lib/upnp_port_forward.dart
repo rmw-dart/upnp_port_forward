@@ -104,7 +104,6 @@ class Soap {
 }
 
 class UpnpPortForwardDaemon {
-  bool done = false;
   Soap? _soap;
 
   late final Function(bool) callback;
@@ -112,8 +111,18 @@ class UpnpPortForwardDaemon {
   UpnpPortForwardDaemon(this.callback);
 
   Future<void> map(int port) async {
-    _soap ??= await findSoap();
-    final soap = _soap!;
-    print(soap.url);
+    while (true) {
+      try {
+        _soap ??= await findSoap();
+      } catch (e, s) {
+        print("Caught: $e");
+        print("Stack: $s");
+        continue;
+      }
+      final soap = _soap!;
+      print(soap.url);
+      print(soap.serviceType);
+      await sleep(60);
+    }
   }
 }
