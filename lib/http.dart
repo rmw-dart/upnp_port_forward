@@ -33,7 +33,5 @@ class Http {
     }
   }
 
-  Future<HttpClientResponse> get(Uri url) {
-    return _req(http.getUrl(url));
-  }
+  Future<HttpClientResponse> get(Uri url) => _req(http.getUrl(url));
 }
