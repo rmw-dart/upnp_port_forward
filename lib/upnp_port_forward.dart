@@ -16,9 +16,9 @@ ST:urn:schemas-upnp-org:device:InternetGatewayDevice:1'''
     .replaceAll('\n', '\r\n')
     .codeUnits;
 
-Future<String> upnpUrl() async {
+Future<Soap> findSoap() async {
   final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
-  String? url;
+  Soap? url;
   udp.listen((RawSocketEvent e) async {
     final d = udp.receive();
     if (d == null) return;
@@ -66,7 +66,7 @@ Future<void> upnpMap(RawDatagramSocket udp, int port) async {
   print("$ip $port");
 }
 
-Future<String?> controlUrl(String url) async {
+Future<Soap?> controlUrl(String url) async {
   final uri = Uri.parse(url);
   final response = await http.get(uri).timeout(
     Duration(seconds: 6),
@@ -80,15 +80,16 @@ Future<String?> controlUrl(String url) async {
     for (var service in doc.findAllElements('service')) {
       final serviceType = service.getElement('serviceType');
       if (serviceType != null) {
+        final type = serviceType.text;
         if ([
           "urn:schemas-upnp-org:service:WANIPConnection:1",
           "urn:schemas-upnp-org:service:WANPPPConnection:1"
-        ].contains(serviceType.text)) {
+        ].contains(type)) {
           final controlUrl = service.getElement('controlURL');
           if (controlUrl != null) {
             final _urlbase = doc.getElement('URLBase');
             final urlbase = _urlbase != null ? _urlbase.text : uri.origin;
-            return urlbase + controlUrl.text;
+            return Soap(urlbase + controlUrl.text, type);
           }
         }
       }
@@ -96,16 +97,23 @@ Future<String?> controlUrl(String url) async {
   }
 }
 
+class Soap {
+  final String serviceType;
+  final String url;
+  Soap(this.url, this.serviceType);
+}
+
 class UpnpPortForwardDaemon {
   bool done = false;
-  String? url;
+  Soap? _soap;
 
   late final Function(bool) callback;
 
   UpnpPortForwardDaemon(this.callback);
 
   Future<void> map(int port) async {
-    url ??= await upnpUrl();
-    print(url);
+    _soap ??= await findSoap();
+    final soap = _soap!;
+    print(soap.url);
   }
 }
