@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:await_sleep/init.dart';
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:convert';
 
 final http = Http(timeout: 6);
 
@@ -91,14 +90,21 @@ class Soap {
   final Uri url;
   Soap(this.url, this.serviceType);
   FutureOr<String?> get(String action, String body) async {
+    final xml =
+        """<?xml version="1.0"?>\n<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:$action xmlns:u="$serviceType">$body</u:$action></s:Body></s:Envelope>""";
     final r = await http.post(url,
         headers: {
           "Content-Type": "text/xml",
-          "SOAPAction": "$serviceType$action"
+          "SOAPAction": "$serviceType#$action"
         },
-        body: Uint8List.fromList(utf8.encode("""<?xml version="1.0"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:$action xmlns:u="$serviceType">$body</u:#{action}></s:Body></s:Envelope>""")));
+        body: xml);
     return await r.text();
+  }
+
+  Future<void> mapped() async {
+    var n = 0;
+    print(await get('GetGenericPortMappingEntry',
+        "<NewPortMappingIndex>${n++}</NewPortMappingIndex>"));
   }
 }
 

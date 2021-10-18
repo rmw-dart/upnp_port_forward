@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
-import 'dart:typed_data';
 
 Future<String> read(HttpClientResponse response, Encoding encoding) async {
   final contents = StringBuffer();
@@ -35,7 +34,7 @@ class Http {
 
   Future<HttpClientResponse> get(Uri url) => _req(http.getUrl(url));
   Future<HttpClientResponse> post(Uri url,
-      {Uint8List? body, Map<String, String>? headers}) async {
+      {String? body, Map<String, String>? headers}) async {
     final req = await http.postUrl(url);
     if (headers != null) {
       for (var i in headers.entries) {
@@ -43,8 +42,10 @@ class Http {
       }
     }
     if (body != null) {
-      req.add(body);
+      req.headers.contentLength = body.length;
+      req.write(body);
     }
+
     return _req(req);
   }
 }
