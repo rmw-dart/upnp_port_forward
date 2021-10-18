@@ -11,7 +11,7 @@ import 'package:intranet_ip/intranet_ip.dart';
 class UpnpPortForwardDaemon {
   Soap? soap;
   String? ip;
-  int duration = 120;
+  int duration = 10;
   List<Map<int, bool>> map = [{}, {}];
   late final Function(Protocol, int, bool) callback;
 
@@ -46,7 +46,7 @@ class UpnpPortForwardDaemon {
     });
   }
 
-  Future<void> _map() async {
+  Future<bool> _map() async {
     final _ip = (await tryCatch(() => intranetIpv4()))?.address;
     if (_ip != ip) {
       ip = _ip;
@@ -60,17 +60,17 @@ class UpnpPortForwardDaemon {
       if (!soapIsNull) {
         upnpFalse();
       }
-      return;
+      return false;
     }
 
     final soap = this.soap!;
     /*
-    for (var i in await soap.ls()) {
-      final protocol = i[4];
-      final externalPort = i[0];
-      print("> ${i[3]} $protocol $ip $externalPort");
-    }
-    */
+       for (var i in await soap.ls()) {
+       final protocol = i[4];
+       final externalPort = i[0];
+       print("> ${i[3]} $protocol $ip $externalPort");
+       }
+       */
 
     if (ip != null) {
       for (var i in Protocol.values) {
@@ -78,6 +78,7 @@ class UpnpPortForwardDaemon {
         final protocolMap = map[protocol];
         late final bool state;
         for (var portState in protocolMap.entries) {
+          print("add ${ip!} ${portState.key}");
           if (await soap.add(i, ip!, portState.key, duration: duration + 60)) {
             state = true;
           } else {
@@ -89,12 +90,16 @@ class UpnpPortForwardDaemon {
           }
         }
       }
+      return true;
     }
+    return false;
   }
 
   Future<void> run() async {
     while (true) {
-      await tryCatch(() => _map());
+      if (null == await tryCatch(() => _map())) {
+        soap = null;
+      }
       await sleep(duration);
     }
   }
