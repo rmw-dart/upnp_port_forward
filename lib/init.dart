@@ -4,8 +4,6 @@ library upnp_port_forward;
 
 import 'soap.dart' show Soap, Protocol, findSoap;
 import 'dart:async';
-import 'dart:io';
-import 'http.dart';
 import 'package:await_sleep/init.dart';
 import 'package:try_catch/init.dart';
 import 'package:intranet_ip/intranet_ip.dart';
@@ -15,7 +13,7 @@ class UpnpPortForwardDaemon {
   String? ip;
   int duration = 120;
   List<Map<int, bool>> map = [{}, {}];
-  late final Function(int, int, bool) callback;
+  late final Function(Protocol, int, bool) callback;
 
   UpnpPortForwardDaemon(this.callback);
 
@@ -41,7 +39,7 @@ class UpnpPortForwardDaemon {
           final port = i.key;
           if (li[port] ?? true) {
             li[port] = false;
-            callback(protocol, port, false);
+            callback(Protocol.values[protocol], port, false);
           }
         }
       }
@@ -81,15 +79,14 @@ class UpnpPortForwardDaemon {
         final protocolMap = map[protocol];
         late final bool state;
         for (var portState in protocolMap.entries) {
-          if (await soap.add(i.name, ip!, portState.key,
-              duration: duration + 60)) {
+          if (await soap.add(i, ip!, portState.key, duration: duration + 60)) {
             state = true;
           } else {
             state = false;
           }
           if (portState.value != state) {
             protocolMap[portState.key] = state;
-            callback(protocol, portState.key, state);
+            callback(i, portState.key, state);
           }
         }
       }

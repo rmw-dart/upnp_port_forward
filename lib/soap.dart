@@ -48,7 +48,6 @@ Future<Soap?> findSoap() async {
 
   var n = 3;
   do {
-    print('try find udp router');
     udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
     await sleep(1);
     if (url != null) {
@@ -103,19 +102,19 @@ class Soap {
     return r;
   }
 
-  FutureOr<HttpClientResponse> rm(String protocol, int externalPort) {
+  FutureOr<HttpClientResponse> rm(Protocol protocol, int externalPort) {
     return get('DeletePortMapping',
-        """<NewRemoteHost></NewRemoteHost><NewExternalPort>$externalPort</NewExternalPort><NewProtocol>$protocol</NewProtocol>""");
+        """<NewRemoteHost></NewRemoteHost><NewExternalPort>$externalPort</NewExternalPort><NewProtocol>${protocol.name}</NewProtocol>""");
   }
 
-  Future<bool> add(String protocol, String ip, int port,
+  Future<bool> add(Protocol protocol, String ip, int port,
       {bool autoRm = true,
       int duration = 0,
       int? externalPort,
       String description = ''}) async {
     externalPort ??= port;
     final r = await get('AddPortMapping',
-        """<NewRemoteHost></NewRemoteHost><NewExternalPort>$externalPort</NewExternalPort><NewProtocol>$protocol</NewExternalPort><NewProtocol>$protocol</NewProtocol><NewInternalPort>$port</NewInternalPort><NewInternalClient>$ip</NewInternalClient><NewEnabled>1</NewEnabled><NewPortMappingDescription>$description</NewPortMappingDescription><NewLeaseDuration>$duration</NewLeaseDuration>""");
+        """<NewRemoteHost></NewRemoteHost><NewExternalPort>$externalPort</NewExternalPort><NewProtocol>${protocol.name}</NewProtocol><NewInternalPort>$port</NewInternalPort><NewInternalClient>$ip</NewInternalClient><NewEnabled>1</NewEnabled><NewPortMappingDescription>$description</NewPortMappingDescription><NewLeaseDuration>$duration</NewLeaseDuration>""");
 
     final statusCode = r.statusCode;
     if (statusCode == 200) {

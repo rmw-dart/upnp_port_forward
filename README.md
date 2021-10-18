@@ -16,7 +16,7 @@ void main() async {
 
   // protocol 0 = tcp 1 = udp
   final upnp = UpnpPortForwardDaemon((protocol, port, state) {
-    print("port $protocol $port $state");
+    print("upnp port map $protocol $port $state");
   });
 
   final port = 35515;
