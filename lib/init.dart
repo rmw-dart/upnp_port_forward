@@ -11,7 +11,7 @@ import 'package:intranet_ip/intranet_ip.dart';
 class UpnpPortForwardDaemon {
   Soap? soap;
   String? ip;
-  int duration = 10;
+  int duration = 90;
   List<Map<int, bool>> map = [{}, {}];
   late final Function(Protocol, int, bool) callback;
 
@@ -78,7 +78,6 @@ class UpnpPortForwardDaemon {
         final protocolMap = map[protocol];
         late final bool state;
         for (var portState in protocolMap.entries) {
-          print("add ${ip!} ${portState.key}");
           if (await soap.add(i, ip!, portState.key, duration: duration + 60)) {
             state = true;
           } else {
