@@ -3,7 +3,6 @@ import 'http.dart';
 import 'dart:io';
 import 'package:await_sleep/init.dart';
 import 'dart:async';
-import 'dart:typed_data';
 
 final http = Http(timeout: 6);
 
@@ -89,7 +88,8 @@ class Soap {
   final String serviceType;
   final Uri url;
   Soap(this.url, this.serviceType);
-  FutureOr<String?> get(String action, String body) async {
+
+  FutureOr<HttpClientResponse> get(String action, String body) async {
     final xml =
         """<?xml version="1.0"?>\n<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:$action xmlns:u="$serviceType">$body</u:$action></s:Body></s:Envelope>""";
     final r = await http.post(url,
@@ -98,13 +98,54 @@ class Soap {
           "SOAPAction": "$serviceType#$action"
         },
         body: xml);
-    return await r.text();
+    return r;
   }
 
-  Future<void> mapped() async {
+  Future<List> mapped() async {
     var n = 0;
-    print(await get('GetGenericPortMappingEntry',
-        "<NewPortMappingIndex>${n++}</NewPortMappingIndex>"));
+    List li = [];
+    while (true) {
+      final r = await get('GetGenericPortMappingEntry',
+          "<NewPortMappingIndex>${n++}</NewPortMappingIndex>");
+      final statusCode = r.statusCode;
+      if (500 == statusCode || 200 == statusCode) {
+        final xml = XmlDocument.parse(await r.text());
+        if (200 == statusCode) {
+          final meta = xml
+              .getElement('s:Envelope')
+              ?.getElement('s:Body')
+              ?.getElement('u:GetGenericPortMappingEntryResponse');
+          if (meta != null) {
+            final map = [];
+            for (var i in [
+              "NewPortMappingDescription",
+              "NewProtocol",
+              "NewRemoteHost",
+              "NewInternalClient",
+            ]) {
+              map.add(meta.getElement(i)?.text ?? '');
+            }
+            for (var i in [
+              "NewEnabled",
+              "NewExternalPort",
+              "NewInternalPort",
+              "NewLeaseDuration",
+            ]) {
+              map.add(int.parse(meta.getElement(i)!.text));
+            }
+            li.add(map);
+          }
+          continue;
+        } else {
+          if (xml.findAllElements('errorCode').first.text == '713') {
+            break;
+          }
+        }
+      }
+
+      stderr.write("\n⚠️ $statusCode\n${await r.text()}\n");
+    }
+    return li;
   }
 }
 
