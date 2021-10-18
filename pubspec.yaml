@@ -1,10 +1,10 @@
 name: upnp_port_forward
 description: upnp port forward daemon 
-version: 1.0.5
+version: 1.0.6
 homepage: https://github.com/rmw-dart/upnp_port_forward
 
 environment:
-  sdk: '>=2.15.0 <3.0.0'
+  sdk: '>=2.15.0-178.1.beta <3.0.0'
 
 
 # dependencies:
