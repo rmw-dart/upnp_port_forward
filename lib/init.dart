@@ -11,6 +11,7 @@ import 'package:intranet_ip/intranet_ip.dart';
 class UpnpPortForwardDaemon {
   Soap? soap;
   String? ip;
+  int duration = 120;
   List<Map<int, bool>> map = [{}, {}];
   late final Function(int, int, bool) callback;
 
@@ -65,7 +66,7 @@ class UpnpPortForwardDaemon {
   Future<void> run() async {
     while (true) {
       await tryCatch(() => _map());
-      await sleep(60);
+      await sleep(duration);
     }
   }
 }
