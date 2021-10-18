@@ -54,10 +54,11 @@ class UpnpPortForwardDaemon {
     print(soap.url);
     print(soap.serviceType);
     for (var i in await soap.mapped()) {
-      for (var j in i) {
-        print("$j ${j.runtimeType}");
-      }
-      print('');
+      final protocol = i[4];
+      final ip = i[6];
+      final externalPort = i[0];
+      print("$protocol $ip $externalPort");
+      await soap.rm(protocol, externalPort);
     }
   }
 

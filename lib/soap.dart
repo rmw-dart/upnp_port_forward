@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:await_sleep/init.dart';
 import 'dart:async';
 
+// https://attacker.cc/index.php/archives/116/
+
 final http = Http(timeout: 6);
 
 final mSearch = '''M-SEARCH * HTTP/1.1
@@ -101,6 +103,11 @@ class Soap {
     return r;
   }
 
+  Future<void> rm(String protocol, int externalPort) async {
+    await get('DeletePortMapping',
+        """<NewRemoteHost></NewRemoteHost><NewExternalPort>$externalPort</NewExternalPort><NewProtocol>$protocol</NewProtocol>""");
+  }
+
   Future<List> mapped() async {
     var n = 0;
     List li = [];
@@ -118,20 +125,20 @@ class Soap {
           if (meta != null) {
             final map = [];
             for (var i in [
-              "NewPortMappingDescription",
-              "NewProtocol",
-              "NewRemoteHost",
-              "NewInternalClient",
-            ]) {
-              map.add(meta.getElement(i)?.text ?? '');
-            }
-            for (var i in [
-              "NewEnabled",
               "NewExternalPort",
               "NewInternalPort",
+              "NewEnabled",
               "NewLeaseDuration",
             ]) {
               map.add(int.parse(meta.getElement(i)!.text));
+            }
+            for (var i in [
+              "NewProtocol",
+              "NewRemoteHost",
+              "NewInternalClient",
+              "NewPortMappingDescription",
+            ]) {
+              map.add(meta.getElement(i)?.text ?? '');
             }
             li.add(map);
           }
