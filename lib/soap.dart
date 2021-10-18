@@ -16,7 +16,7 @@ ST:urn:schemas-upnp-org:device:InternetGatewayDevice:1'''
     .replaceAll('\n', '\r\n')
     .codeUnits;
 
-Future<Soap> findSoap() async {
+Future<Soap?> findSoap() async {
   final udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
   Soap? url;
   udp.listen((RawSocketEvent e) async {
@@ -46,18 +46,18 @@ Future<Soap> findSoap() async {
     //udp.send(message.codeUnits, d.address, d.port);
   });
 
-  while (true) {
+  var n = 3;
+  do {
     print('try find udp router');
     udp.send(mSearch, InternetAddress('239.255.255.250'), 1900);
     await sleep(1);
     if (url != null) {
       break;
     }
-    await sleep(59);
-  }
+  } while (n-- > 0 && url == null);
 
   udp.close();
-  return url!;
+  return url;
 }
 
 Future<Soap?> controlUrl(String url) async {
@@ -103,9 +103,38 @@ class Soap {
     return r;
   }
 
-  Future<void> rm(String protocol, int externalPort) async {
-    await get('DeletePortMapping',
+  FutureOr<HttpClientResponse> rm(String protocol, int externalPort) {
+    return get('DeletePortMapping',
         """<NewRemoteHost></NewRemoteHost><NewExternalPort>$externalPort</NewExternalPort><NewProtocol>$protocol</NewProtocol>""");
+  }
+
+  Future<bool> add(String protocol, String ip, int port,
+      {bool autoRm = true,
+      int duration = 0,
+      int? externalPort,
+      String description = ''}) async {
+    externalPort ??= port;
+    final r = await get('AddPortMapping',
+        """<NewRemoteHost></NewRemoteHost><NewExternalPort>$externalPort</NewExternalPort><NewProtocol>$protocol</NewExternalPort><NewProtocol>$protocol</NewProtocol><NewInternalPort>$port</NewInternalPort><NewInternalClient>$ip</NewInternalClient><NewEnabled>1</NewEnabled><NewPortMappingDescription>$description</NewPortMappingDescription><NewLeaseDuration>$duration</NewLeaseDuration>""");
+
+    final statusCode = r.statusCode;
+    if (statusCode == 200) {
+      return true;
+    } else {
+      final xml = XmlDocument.parse(await r.text());
+      if (xml.findAllElements('errorCode').first.text == '718'
+          // ConflictInMappingEntry
+          ) {
+        await rm(protocol, externalPort);
+        return await add(protocol, ip, port,
+            autoRm: false,
+            duration: duration,
+            externalPort: externalPort,
+            description: description);
+      }
+      stderr.write("❌ $statusCode : ${xml.findAllElements('s:Body').first}");
+    }
+    return false;
   }
 
   Future<List> ls() async {
