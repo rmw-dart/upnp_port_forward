@@ -53,7 +53,12 @@ class UpnpPortForwardDaemon {
     final soap = this.soap ??= await findSoap();
     print(soap.url);
     print(soap.serviceType);
-    print(await soap.mapped());
+    for (var i in await soap.mapped()) {
+      for (var j in i) {
+        print("$j ${j.runtimeType}");
+      }
+      print('');
+    }
   }
 
   Future<void> run() async {
