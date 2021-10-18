@@ -1,12 +1,12 @@
 import 'package:xml/xml.dart';
-import 'http.dart';
+import 'package:req/init.dart';
 import 'dart:io';
 import 'package:await_sleep/init.dart';
 import 'dart:async';
 
 // https://attacker.cc/index.php/archives/116/
 
-final http = Http(timeout: 6);
+final req = Req(timeout: 6);
 
 final mSearch = '''M-SEARCH * HTTP/1.1
 HOST:239.255.255.250:1900
@@ -61,7 +61,7 @@ Future<Soap?> findSoap() async {
 
 Future<Soap?> controlUrl(String url) async {
   final uri = Uri.parse(url);
-  final response = await http.get(uri);
+  final response = await req.getUri(uri);
   if (response.statusCode == 200) {
     final doc = XmlDocument.parse(await response.text());
 
@@ -93,7 +93,7 @@ class Soap {
   FutureOr<HttpClientResponse> get(String action, String body) async {
     final xml =
         """<?xml version="1.0"?>\n<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:$action xmlns:u="$serviceType">$body</u:$action></s:Body></s:Envelope>""";
-    final r = await http.post(url,
+    final r = await req.postUri(url,
         headers: {
           "Content-Type": "text/xml",
           "SOAPAction": "$serviceType#$action"
