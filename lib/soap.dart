@@ -111,8 +111,11 @@ class Soap {
       {bool autoRm = true,
       int duration = 0,
       int? externalPort,
-      String description = ''}) async {
+      String description = ' '}) async {
     externalPort ??= port;
+    if (description.isEmpty) {
+      description = ' ';
+    }
     final r = await get('AddPortMapping',
         """<NewRemoteHost></NewRemoteHost><NewExternalPort>$externalPort</NewExternalPort><NewProtocol>${protocol.name}</NewProtocol><NewInternalPort>$port</NewInternalPort><NewInternalClient>$ip</NewInternalClient><NewEnabled>1</NewEnabled><NewPortMappingDescription>$description</NewPortMappingDescription><NewLeaseDuration>$duration</NewLeaseDuration>""");
 
