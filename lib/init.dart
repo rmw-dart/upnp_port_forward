@@ -64,14 +64,13 @@ class UpnpPortForwardDaemon {
     }
 
     final soap = this.soap!;
-    // /*
+    /*
     for (var i in await soap.ls()) {
       final protocol = i[4];
       final externalPort = i[0];
       print("> ${i[3]} $protocol $ip $externalPort");
-//          await soap.rm(protocol, externalPort);
     }
-    //  */
+    */
 
     if (ip != null) {
       for (var i in Protocol.values) {
