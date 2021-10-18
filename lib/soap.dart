@@ -1,4 +1,5 @@
 import 'package:xml/xml.dart';
+import 'package:rmwlog/init.dart';
 import 'package:req/init.dart';
 import 'dart:io';
 import 'package:await_sleep/init.dart';
@@ -127,6 +128,7 @@ class Soap {
       if (xml.findAllElements('errorCode').first.text == '718'
           // ConflictInMappingEntry
           ) {
+        logw('upnp conflict ${protocol.name} $externalPort');
         await rm(protocol, externalPort);
         return await add(protocol, ip, port,
             autoRm: false,
