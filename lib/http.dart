@@ -22,20 +22,10 @@ class Http {
 
   Http({this.timeout = 60}) : http = HttpClient();
 
-  Future<HttpClientResponse> _req(FutureOr<HttpClientRequest> request) async {
+  Future<HttpClientResponse> _req(
+      FutureOr<HttpClientRequest> request, Map<String, String>? headers,
+      {String? body}) async {
     final req = await request;
-    try {
-      return await req.close().timeout(Duration(seconds: timeout));
-    } on TimeoutException catch (_) {
-      req.abort();
-      rethrow;
-    }
-  }
-
-  Future<HttpClientResponse> get(Uri url) => _req(http.getUrl(url));
-  Future<HttpClientResponse> post(Uri url,
-      {String? body, Map<String, String>? headers}) async {
-    final req = await http.postUrl(url);
     if (headers != null) {
       for (var i in headers.entries) {
         req.headers.set(i.key, i.value);
@@ -45,7 +35,21 @@ class Http {
       req.headers.contentLength = body.length;
       req.write(body);
     }
+    try {
+      return await req.close().timeout(Duration(seconds: timeout));
+    } on TimeoutException catch (_) {
+      req.abort();
+      rethrow;
+    }
+  }
 
-    return _req(req);
+  Future<HttpClientResponse> get(Uri url, {Map<String, String>? headers}) =>
+      _req(http.getUrl(url), headers);
+
+  Future<HttpClientResponse> post(Uri url,
+      {String? body, Map<String, String>? headers}) async {
+    final req = await http.postUrl(url);
+
+    return _req(req, headers, body: body);
   }
 }
