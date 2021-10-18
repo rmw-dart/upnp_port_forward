@@ -79,13 +79,17 @@ class UpnpPortForwardDaemon {
       for (var i in Protocol.values) {
         final protocol = i.index;
         final protocolMap = map[protocol];
+        late final bool state;
         for (var portState in protocolMap.entries) {
           if (await soap.add(i.name, ip!, portState.key,
               duration: duration + 60)) {
-            if (portState.value != true) {
-              protocolMap[portState.key] = true;
-              callback(protocol, portState.key, true);
-            }
+            state = true;
+          } else {
+            state = false;
+          }
+          if (portState.value != state) {
+            protocolMap[portState.key] = state;
+            callback(protocol, portState.key, state);
           }
         }
       }
