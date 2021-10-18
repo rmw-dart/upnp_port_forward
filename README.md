@@ -7,8 +7,7 @@ UPNP Port Forward
 ## use
 
 ```dart
-import 'package:upnp_port_forward/upnp_port_forward.dart'
-    show UpnpPortForwardDaemon;
+import 'package:upnp_port_forward/init.dart' show UpnpPortForwardDaemon;
 
 void main() async {
   // protocol 0 = tcp 1 = udp
