@@ -46,7 +46,7 @@ class UpnpPortForwardDaemon {
     });
   }
 
-  Future<bool> _map() async {
+  Future<bool> bind() async {
     final _ip = (await tryCatch(() => intranetIpv4()))?.address;
     if (_ip != ip) {
       ip = _ip;
@@ -97,7 +97,7 @@ class UpnpPortForwardDaemon {
 
   Future<void> run() async {
     while (true) {
-      if (null == await tryCatch(() => _map())) {
+      if (null == await tryCatch(() => bind())) {
         soap = null;
       }
       await sleep(duration);
