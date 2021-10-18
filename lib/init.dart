@@ -53,7 +53,7 @@ class UpnpPortForwardDaemon {
     final soap = this.soap ??= await findSoap();
     print(soap.url);
     print(soap.serviceType);
-    for (var i in await soap.mapped()) {
+    for (var i in await soap.ls()) {
       final protocol = i[4];
       final ip = i[6];
       final externalPort = i[0];

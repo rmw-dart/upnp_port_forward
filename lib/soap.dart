@@ -108,7 +108,7 @@ class Soap {
         """<NewRemoteHost></NewRemoteHost><NewExternalPort>$externalPort</NewExternalPort><NewProtocol>$protocol</NewProtocol>""");
   }
 
-  Future<List> mapped() async {
+  Future<List> ls() async {
     var n = 0;
     List li = [];
     while (true) {
