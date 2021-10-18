@@ -1,6 +1,6 @@
 # upnp_port_forward
 
-UPNP Port Forward
+upnp port forward daemon
 
 ## use
 
