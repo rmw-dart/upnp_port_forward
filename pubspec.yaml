@@ -19,6 +19,6 @@ dependencies:
   intranet_ip: ^1.0.2
   random_uint8list: ^1.0.0 
   req: ^1.0.2
-  rmwlog: ^1.0.4
+  rmwlog: ^1.0.5
   try_catch: ^1.0.2
   xml: ^5.3.0
